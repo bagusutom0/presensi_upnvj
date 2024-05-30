@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "626960709005",
+    "firebase_url": "https://skripsi-presensi-upnvj-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "skripsi-presensi-upnvj",
+    "storage_bucket": "skripsi-presensi-upnvj.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:626960709005:android:5130c88e5b140f088af9c4",
+        "android_client_info": {
+          "package_name": "com.example.skripsipresensiupnvj"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrF7goTN64c4WT33WsbGg7hImwi_2jA98"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:626960709005:android:ca23292c16555f1b8af9c4",
+        "android_client_info": {
+          "package_name": "com.latihan.skripsipresensiupnvj"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrF7goTN64c4WT33WsbGg7hImwi_2jA98"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:626960709005:android:dde5c7f6bb422ed98af9c4",
+        "android_client_info": {
+          "package_name": "com.latihan.testingcomposeapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrF7goTN64c4WT33WsbGg7hImwi_2jA98"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
