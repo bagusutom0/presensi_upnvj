@@ -23,20 +23,10 @@ class LoginViewModel @Inject constructor(
     private val _state = MutableLiveData<Resource<User>>()
     val state: LiveData<Resource<User>> = _state
 
-    private val _isUserLogin = MutableLiveData(false)
-    val isUserLogin: LiveData<Boolean> = _isUserLogin
-
-    fun getUserLoginState() {
+    init {
         viewModelScope.launch {
-            session.isUserLoggedIn().collect {
-                Log.d("LoginViewModel", "isUserLoggedIn: $it")
-                _isUserLogin.postValue(it)
-            }
-
-            if (_isUserLogin.value != null && _isUserLogin.value != false) {
-                session.getUser().collect {
-                    _state.postValue(Resource.Success(it))
-                }
+            session.userFlow.collect {
+                _state.postValue(Resource.Success(it ?: User()))
             }
         }
     }
@@ -51,15 +41,13 @@ class LoginViewModel @Inject constructor(
                 .collect {
                     when (it) {
                         is Resource.Success -> {
-                            session.setUserLoggedIn(true)
                             session.setUser(it.data!!)
-                            _isUserLogin.postValue(true)
                             _state.postValue(it)
                             Log.d("LoginViewModel", "User logged in successfully")
                         }
 
                         else -> {
-
+                            Log.d("LoginViewModel", "getConfirmedUser: error")
                         }
                     }
                 }

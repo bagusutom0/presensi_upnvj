@@ -1,12 +1,6 @@
 package com.example.skripsipresensiupnvj.di
 
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.emptyPreferences
-import androidx.datastore.preferences.preferencesDataStoreFile
 import com.example.skripsipresensiupnvj.feature_presensi.data.data_store.Session
 import dagger.Module
 import dagger.Provides
@@ -20,9 +14,7 @@ import javax.inject.Singleton
 class DataStoreModule {
     @Singleton
     @Provides
-    fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
-        return PreferenceDataStoreFactory.create(
-            corruptionHandler = ReplaceFileCorruptionHandler(produceNewData = { emptyPreferences() }),
-            produceFile = { context.preferencesDataStoreFile(Session.DATA) })
+    fun provideDataStore(@ApplicationContext context: Context): Session {
+        return Session(context)
     }
 }

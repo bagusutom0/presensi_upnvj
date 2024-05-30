@@ -7,6 +7,7 @@ buildscript {
         classpath("com.google.gms:google-services:4.4.1")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.21")
         classpath("com.google.dagger:hilt-android-gradle-plugin:2.50")
+        classpath("org.jetbrains.kotlin:kotlin-serialization:1.6.0")
     }
 }
 // Top-level build file where you can add configuration options common to all sub-projects/modules.

@@ -4,6 +4,7 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.dagger.hilt.android")
     kotlin("kapt")
+    id("kotlinx-serialization")
 }
 
 android {
@@ -100,6 +101,8 @@ dependencies {
     // data_store
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("androidx.datastore:datastore-core:1.0.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.3.0")
 
     // Location
     implementation("com.google.android.gms:play-services-location:21.2.0")

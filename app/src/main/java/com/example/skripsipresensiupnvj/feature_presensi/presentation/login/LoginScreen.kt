@@ -64,52 +64,50 @@ fun LoginScreen(
     var canExit by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var inputUsername by remember { mutableStateOf("") }
+    var inputPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = canExit) {
-        viewModel.getUserLoginState()
-        viewModel.isUserLogin.observe(owner) {
-            Log.d("LoginScreen", "LoginScreen: userlogin = $it")
-            if (it) {
-                viewModel.state.observe(owner) {
-                    when (it) {
-                        is Resource.Success -> {
-                            loading = false
-                            if (it.data?.username != "" && it.data?.password != "") {
-                                if (nfcMessageState.value != null) {
-                                    nfcMessageState.value?.let { message ->
-                                        navController.navigate(
-                                            Screen.DetailKegiatanScreen.route +
-                                                    "?idKegiatan=${message}" +
-                                                    "&username=${username}&password=${password}"
-                                        )
-                                    }
-                                } else {
-                                    navController.navigate(
-                                        Screen.HomeUserScreen.route +
-                                                "?username=${username}&password=${password}"
-                                    )
-                                }
-                            } else {
-                                Toast.makeText(context, "Data user kosong!", Toast.LENGTH_SHORT)
-                                    .show()
+    LaunchedEffect(key1 = null) {
+        Log.d("LoginScreen", "LoginScreen: launchedEffect")
+        viewModel.state.observe(owner) {
+            when (it) {
+                is Resource.Success -> {
+                    loading = false
+                    inputUsername = it.data?.username ?: ""
+                    inputPassword = it.data?.password ?: ""
+                    if (inputUsername != "" && inputPassword != "") {
+                        Log.d("LoginScreen", "username & password != '' ")
+                        if (nfcMessageState.value != null) {
+                            nfcMessageState.value?.let { message ->
+                                navController.navigate(
+                                    Screen.DetailKegiatanScreen.route +
+                                            "?idKegiatan=${message}" +
+                                            "&username=${inputUsername}&password=${inputPassword}"
+                                )
                             }
+                        } else {
+                            navController.navigate(
+                                Screen.HomeUserScreen.route +
+                                        "?username=${inputUsername}&password=${inputPassword}"
+                            )
                         }
+                    } else {
+                        Toast.makeText(context, "Data user kosong!", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
 
-                        is Resource.Loading -> {
-                            loading = true
-                        }
+                is Resource.Loading -> {
+                    loading = true
+                }
 
-                        is Resource.Error -> {
-                            loading = false
+                is Resource.Error -> {
+                    loading = false
 //                            val message = "Pengguna ini tidak tersedia!"
 //                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                            Log.e("LoginScreen", "Error: ${it.message}")
-                        }
-                    }
+                    Log.e("LoginScreen", "Error: ${it.message}")
                 }
             }
         }
@@ -150,16 +148,16 @@ fun LoginScreen(
             Text(text = "Presensi UPNVJ", fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(120.dp))
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
+                value = inputUsername,
+                onValueChange = { inputUsername = it },
                 label = { Text(text = "Username") },
                 maxLines = 1,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
+                value = inputPassword,
+                onValueChange = { inputPassword = it },
                 label = { Text("Password") },
                 maxLines = 1,
                 modifier = Modifier.fillMaxWidth(),
@@ -183,16 +181,16 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(60.dp))
             Button(
                 onClick = {
-                    if (username.isNotBlank() && password.isNotBlank()) {
-                        if (username != "admin" && password != "admin") {
-                            viewModel.getConfirmedUser(username, password, deviceId)
+                    if (inputUsername.isNotBlank() && inputPassword.isNotBlank()) {
+                        if (inputUsername != "admin" && inputPassword != "admin") {
+                            viewModel.getConfirmedUser(inputUsername, inputPassword, deviceId)
                             viewModel.state.observe(owner) {
                                 when (it) {
                                     is Resource.Success -> {
                                         loading = false
                                         navController.navigate(
                                             Screen.HomeUserScreen.route +
-                                                    "?username=${username}&password=${password}"
+                                                    "?username=${inputUsername}&password=${inputPassword}"
                                         )
                                         Toast.makeText(
                                             context,

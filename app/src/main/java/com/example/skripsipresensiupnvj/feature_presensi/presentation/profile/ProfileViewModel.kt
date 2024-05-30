@@ -37,12 +37,10 @@ class ProfileViewModel @Inject constructor(
 
     fun deleteLoginSession() {
         viewModelScope.launch(Dispatchers.Main) {
-            session.setUserLoggedIn(false)
             session.setUser(User())
             session.clearSession()
 
-            session.isUserLoggedIn()
-                .collect {
+            session.userFlow.collect {
                     Log.d("DeleteLoginSession", "deleteLoginSession: userLoginState = $it")
                 }
         }
