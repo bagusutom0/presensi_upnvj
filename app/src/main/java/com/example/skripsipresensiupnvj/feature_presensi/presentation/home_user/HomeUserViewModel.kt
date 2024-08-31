@@ -26,17 +26,6 @@ class HomeUserViewModel @Inject constructor(
     private val _errorMessage = MutableLiveData<String>()
     val errorMessage: LiveData<String> = _errorMessage
 
-    private val _isUserLogin = MutableLiveData<Boolean>()
-    val isUserLogin: LiveData<Boolean> = _isUserLogin
-
-//    init {
-//        viewModelScope.launch {
-//            session.isUserLoggedIn().collect {
-//                _isUserLogin.postValue(it)
-//            }
-//        }
-//    }
-
 //    fun getIdKegiatan(judul: String, lokasi: String): String {
 //        var idKegiatan = ""
 //        viewModelScope.launch {

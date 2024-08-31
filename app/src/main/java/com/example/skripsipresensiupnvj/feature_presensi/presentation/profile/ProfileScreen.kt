@@ -205,8 +205,7 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = {
-                    viewModel.deleteLoginSession()
-                    navController.navigate(Screen.LoginScreen.route)
+                    viewModel.deleteLoginSession(navController)
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

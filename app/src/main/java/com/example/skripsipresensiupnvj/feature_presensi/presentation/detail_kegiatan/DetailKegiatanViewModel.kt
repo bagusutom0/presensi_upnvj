@@ -28,6 +28,12 @@ class DetailKegiatanViewModel @Inject constructor(
     fun getKegiatanById(id: String) {
         viewModelScope.launch {
             kegiatanUseCase.getKegiatanById(id)
+                .catch {
+                    _kegiatanState.postValue(Resource.Error(it.message.toString()))
+                }
+                .collect {
+                    _kegiatanState.postValue(it)
+                }
         }
     }
 
@@ -52,6 +58,12 @@ class DetailKegiatanViewModel @Inject constructor(
     fun presensiKeluar(username: String, password: String, judul: String, lokasi: String) {
         viewModelScope.launch {
             kehadiranUseCase.presensiKeluar(username, password, judul, lokasi)
+        }
+    }
+
+    fun deleteNfcMessage(message: MutableLiveData<String>) {
+        viewModelScope.launch {
+            message.postValue("")
         }
     }
 }

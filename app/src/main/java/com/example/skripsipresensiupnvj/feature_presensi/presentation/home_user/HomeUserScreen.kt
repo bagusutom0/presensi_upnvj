@@ -1,9 +1,10 @@
 package com.example.skripsipresensiupnvj.feature_presensi.presentation.home_user
 
 import android.annotation.SuppressLint
-import android.content.Intent
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -45,13 +46,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import com.example.skripsipresensiupnvj.feature_presensi.domain.model.Kegiatan
 import com.example.skripsipresensiupnvj.feature_presensi.presentation.util.Screen
 import com.example.skripsipresensiupnvj.ui.theme.Purple40
 import com.example.skripsipresensiupnvj.ui.theme.Purple80
 import kotlinx.coroutines.delay
+import kotlin.system.exitProcess
 
+@RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "CoroutineCreationDuringComposition")
 @ExperimentalAnimationApi
@@ -60,6 +64,7 @@ fun HomeUserScreen(
     navController: NavController,
     username: String,
     password: String,
+    nfcMessage: MutableLiveData<String>,
     viewModel: HomeUserViewModel = hiltViewModel()
 ) {
     var canExit by remember { mutableStateOf(false) }
@@ -70,7 +75,17 @@ fun HomeUserScreen(
     val loading = viewModel.loading.observeAsState()
     val errorMessage = viewModel.errorMessage.observeAsState()
 
-    LaunchedEffect(key1 = canExit) {
+    LaunchedEffect(Unit) {
+        nfcMessage.observe(owner) {
+            if (it != "") {
+                navController.navigate(
+                    Screen.DetailKegiatanScreen.route +
+                            "?idKegiatan=${it}" +
+                            "&username=${username}&password=${password}"
+                )
+            }
+        }
+
         if (canExit) {
             delay(2000)
             canExit = false
@@ -81,16 +96,15 @@ fun HomeUserScreen(
 
     BackHandler(enabled = true) {
         if (canExit) {
-            viewModel.isUserLogin.observe(owner) {
-                if (it) {
-                    context.startActivity(Intent(Intent.ACTION_MAIN).apply {
-                        addCategory(Intent.CATEGORY_HOME)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    })
-                } else {
-                    navController.navigate(Screen.LoginScreen.route)
-                }
-            }
+//            val intent = Intent(Intent.ACTION_MAIN)
+//                    intent.addCategory(Intent.CATEGORY_HOME)
+//                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+//                    context.startActivity(intent)
+//                    activity?.finish()
+
+//            activity?.finishAffinity()
+
+            exitProcess(0)
         } else {
             canExit = true
             Toast.makeText(context, "Tekan sekali lagi untuk keluar", Toast.LENGTH_SHORT).show()

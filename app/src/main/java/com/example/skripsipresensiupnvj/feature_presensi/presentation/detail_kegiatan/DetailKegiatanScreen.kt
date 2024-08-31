@@ -39,9 +39,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ComponentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import com.example.skripsipresensiupnvj.feature_presensi.data.repository.Resource
 import com.example.skripsipresensiupnvj.feature_presensi.presentation.add_kegiatan.getLastUserLocation
@@ -64,9 +64,10 @@ fun DetailKegiatanScreen(
     viewModel: DetailKegiatanViewModel = hiltViewModel(),
     username: String,
     password: String,
+    nfcMessage: MutableLiveData<String>,
     handler: NfcHandler
 ) {
-    val context = LocalContext.current as ComponentActivity
+    val context = LocalContext.current
 
     var detail by remember { mutableStateOf("") }
     var waktuMulai by remember { mutableStateOf("") }
@@ -134,6 +135,7 @@ fun DetailKegiatanScreen(
     }
 
     BackHandler {
+        viewModel.deleteNfcMessage(nfcMessage)
         navController.navigate(
             Screen.HomeUserScreen.route +
                     "?username=$username&password=$password"
@@ -156,6 +158,7 @@ fun DetailKegiatanScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
+                            viewModel.deleteNfcMessage(nfcMessage)
                             navController.navigate(
                                 Screen.HomeUserScreen.route +
                                         "?username=$username&password=$password"
@@ -406,7 +409,13 @@ fun DetailKegiatanScreen(
             }
 
             Button(
-                onClick = { navController.navigate(Screen.AlasanScreen.route) },
+                onClick = {
+                    navController.navigate(
+                        Screen.AlasanScreen.route +
+                                "?idKegiatan=${id}" +
+                                "&username=${username}&password=${password}"
+                    )
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "Izin/Telat")

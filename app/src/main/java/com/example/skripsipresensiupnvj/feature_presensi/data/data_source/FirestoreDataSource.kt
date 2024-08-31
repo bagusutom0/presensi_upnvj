@@ -482,28 +482,27 @@ class FirestoreDataSource {
                 .addOnSuccessListener {
                     for (document in it) {
                         idUser = document.id
+
+                        kehadiranRef
+                            .add(
+                                Kehadiran(
+                                    userId = idUser,
+                                    kegiatanId = idKegiatan,
+                                    presensiMasuk = "Izin/Telat",
+                                    presensiKeluar = "Izin/Telat",
+                                    alasan = alasan
+                                )
+                            )
+                            .addOnSuccessListener {
+                                Log.d(TAG, "alasanKehadiran: Success")
+                            }
+                            .addOnFailureListener {
+                                Log.e(TAG, "alasanKehadiran: $it")
+                            }
                     }
                 }
                 .addOnFailureListener {
                     Log.e(TAG, "submitAlasanKehadiran: $it")
-                }
-                .await()
-
-            kehadiranRef
-                .add(
-                    Kehadiran(
-                        userId = idUser,
-                        kegiatanId = idKegiatan,
-                        presensiMasuk = "Izin/Telat",
-                        presensiKeluar = "Izin/Telat",
-                        alasan = alasan
-                    )
-                )
-                .addOnSuccessListener {
-                    Log.d(TAG, "alasanKehadiran: Success")
-                }
-                .addOnFailureListener {
-                    Log.e(TAG, "alasanKehadiran: $it")
                 }
                 .await()
         }

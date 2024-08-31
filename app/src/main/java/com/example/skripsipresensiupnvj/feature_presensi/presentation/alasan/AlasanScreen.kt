@@ -1,6 +1,7 @@
 package com.example.skripsipresensiupnvj.feature_presensi.presentation.alasan
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -46,7 +47,15 @@ fun AlasanScreen(
     var alasan by remember { mutableStateOf("") }
 
     LaunchedEffect(key1 = null) {
-//        idKegiatan = idKegiatan
+//        Log.d("Alasan", "AlasanKehadiran: $idKegiatan")
+    }
+
+    BackHandler {
+        navController.navigate(
+            Screen.DetailKegiatanScreen.route +
+                    "?idKegiatan=${idKegiatan}" +
+                    "&username=${username}&password=${password}"
+        )
     }
 
     Scaffold(
@@ -94,7 +103,11 @@ fun AlasanScreen(
                     // masukan izin pada firestore
                     viewModel.submitAlasanKehadiran(idKegiatan, username, password, alasan)
 
-                    navController.navigate(Screen.AlasanScreen.route)
+                    navController.navigate(
+                        Screen.DetailKegiatanScreen.route +
+                                "?idKegiatan=${idKegiatan}" +
+                                "&username=${username}&password=${password}"
+                    )
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

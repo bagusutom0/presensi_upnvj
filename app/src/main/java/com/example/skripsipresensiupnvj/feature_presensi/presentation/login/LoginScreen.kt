@@ -28,7 +28,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import com.example.skripsipresensiupnvj.R
 import com.example.skripsipresensiupnvj.feature_presensi.data.repository.Resource
@@ -58,7 +58,7 @@ fun LoginScreen(
     owner: LifecycleOwner,
     navController: NavController,
     deviceId: String,
-    nfcMessageState: MutableState<String?>,
+    nfcMessage: MutableLiveData<String>,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     var canExit by remember { mutableStateOf(false) }
@@ -71,7 +71,7 @@ fun LoginScreen(
 
     LaunchedEffect(key1 = null) {
         Log.d("LoginScreen", "LoginScreen: launchedEffect")
-        viewModel.state.observe(owner) {
+        viewModel.state.observe(owner) { it ->
             when (it) {
                 is Resource.Success -> {
                     loading = false
@@ -79,23 +79,20 @@ fun LoginScreen(
                     inputPassword = it.data?.password ?: ""
                     if (inputUsername != "" && inputPassword != "") {
                         Log.d("LoginScreen", "username & password != '' ")
-                        if (nfcMessageState.value != null) {
-                            nfcMessageState.value?.let { message ->
+                        nfcMessage.observe(owner) {
+                            if (it != "") {
+//                                navController.navigate(
+//                                    Screen.DetailKegiatanScreen.route +
+//                                            "?idKegiatan=${it}" +
+//                                            "&username=${inputUsername}&password=${inputPassword}"
+//                                )
+                            } else {
                                 navController.navigate(
-                                    Screen.DetailKegiatanScreen.route +
-                                            "?idKegiatan=${message}" +
-                                            "&username=${inputUsername}&password=${inputPassword}"
+                                    Screen.HomeUserScreen.route +
+                                            "?username=${inputUsername}&password=${inputPassword}"
                                 )
                             }
-                        } else {
-                            navController.navigate(
-                                Screen.HomeUserScreen.route +
-                                        "?username=${inputUsername}&password=${inputPassword}"
-                            )
                         }
-                    } else {
-                        Toast.makeText(context, "Data user kosong!", Toast.LENGTH_SHORT)
-                            .show()
                     }
                 }
 

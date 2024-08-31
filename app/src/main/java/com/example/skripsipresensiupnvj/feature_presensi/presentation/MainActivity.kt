@@ -1,19 +1,19 @@
 package com.example.skripsipresensiupnvj.feature_presensi.presentation
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.LocationManager
-import android.nfc.NdefMessage
-import android.nfc.NdefRecord
 import android.nfc.NfcAdapter
 import android.nfc.Tag
+import android.nfc.tech.Ndef
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,7 +22,8 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.MutableLiveData
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -46,11 +47,14 @@ import dagger.hilt.android.AndroidEntryPoint
 @RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private lateinit var nfcAdapter: NfcAdapter
     private lateinit var pendingIntent: PendingIntent
-    private lateinit var nfcHandler: NfcHandler
     private lateinit var deviceId: String
-    private val nfcMessageState = mutableStateOf<String?>(null)
+    private val nfcMessage = MutableLiveData<String>()
+    private lateinit var intentFiltersArray: Array<IntentFilter>
+    private lateinit var techListsArray: Array<Array<String>>
+    private lateinit var adapter: NfcAdapter
+    private lateinit var nfcHandler: NfcHandler
+    private lateinit var navController: NavHostController
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -78,7 +82,7 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val navController = rememberNavController()
+                    navController = rememberNavController()
                     NavHost(
                         navController = navController,
                         startDestination = Screen.LoginScreen.route
@@ -89,7 +93,7 @@ class MainActivity : ComponentActivity() {
                                 owner = this@MainActivity,
                                 navController = navController,
                                 deviceId = deviceId,
-                                nfcMessageState = nfcMessageState
+                                nfcMessage = nfcMessage
                             )
                         }
                         // Home User
@@ -116,7 +120,8 @@ class MainActivity : ComponentActivity() {
                             HomeUserScreen(
                                 navController = navController,
                                 username = username,
-                                password = password
+                                password = password,
+                                nfcMessage = nfcMessage
                             )
                         }
                         // Home Admin
@@ -185,7 +190,7 @@ class MainActivity : ComponentActivity() {
                                 },
                             )
                         ) {
-                            val id = it.arguments?.getString("id") ?: ""
+                            val id = it.arguments?.getString("idKegiatan") ?: ""
                             val username = it.arguments?.getString("username") ?: ""
                             val password = it.arguments?.getString("password") ?: ""
                             DetailKegiatanScreen(
@@ -194,6 +199,7 @@ class MainActivity : ComponentActivity() {
                                 username = username,
                                 password = password,
                                 handler = nfcHandler,
+                                nfcMessage = nfcMessage,
                                 owner = this@MainActivity
                             )
                         }
@@ -223,7 +229,7 @@ class MainActivity : ComponentActivity() {
                                 },
                             )
                         ) {
-                            val id = it.arguments?.getString("id") ?: ""
+                            val id = it.arguments?.getString("idKegiatan") ?: ""
                             val username = it.arguments?.getString("username") ?: ""
                             val password = it.arguments?.getString("password") ?: ""
                             AlasanScreen(
@@ -251,47 +257,49 @@ class MainActivity : ComponentActivity() {
         // cek izin aplikasi
         requestNecessaryPermissions()
 
-        // Initialize NFC adapter and pending intent
-        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
-        pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-            PendingIntent.FLAG_MUTABLE
-        )
+        // NFC
+        val intent = Intent(this, javaClass).apply {
+            addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
+        pendingIntent = PendingIntent.getActivity(this, 0, intent,
+            PendingIntent.FLAG_MUTABLE)
+        val ndef = IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED).apply {
+            try {
+                addDataType("text/plain")    /* Handles all MIME based dispatches.
+                                 You should specify only the ones that you need. */
+            } catch (e: IntentFilter.MalformedMimeTypeException) {
+                throw RuntimeException("fail", e)
+            }
+        }
 
-        // Initialize the NfcHandler
+        intentFiltersArray = arrayOf(ndef)
+        techListsArray = arrayOf(arrayOf(Ndef::class.java.name))
+        adapter = NfcAdapter.getDefaultAdapter(this)
         nfcHandler = NfcHandler()
     }
 
-    override fun onResume() {
-        super.onResume()
-        nfcAdapter.enableForegroundDispatch(this, pendingIntent, null, null)
-    }
-
-    override fun onPause() {
+    public override fun onPause() {
         super.onPause()
-        nfcAdapter.disableForegroundDispatch(this)
+        adapter.disableForegroundDispatch(this)
     }
 
-    override fun onNewIntent(intent: Intent) {
+    public override fun onResume() {
+        super.onResume()
+        adapter.enableForegroundDispatch(this, pendingIntent, intentFiltersArray, techListsArray)
+    }
+
+    public override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        val tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG) as Tag?
-        nfcHandler.handleNfcTag(tag)
-        val ndefMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
-        if (ndefMessages != null) {
-            val ndefMessage = ndefMessages[0] as NdefMessage
-            val records = ndefMessage.records
-            for (record in records) {
-                if (record.tnf == NdefRecord.TNF_EXTERNAL_TYPE) {
-                    val payload = String(record.payload)
-                    Log.d("NFC", "Payload: $payload")
-                    nfcMessageState.value = payload
-                }
-            }
+        val tagFromIntent: Tag? = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+        nfcHandler.handleNfcTag(tagFromIntent, this, navController)
+
+        if (tagFromIntent != null) {
+            Toast.makeText(this, "Tag NFC terdeteksi", Toast.LENGTH_SHORT).show()
+            nfcMessage.postValue(nfcHandler.readNdefMessage())
         }
     }
 
+    @SuppressLint("HardwareIds")
     @RequiresApi(Build.VERSION_CODES.M)
     private fun requestNecessaryPermissions() {
         val permissions = mutableListOf<String>()
@@ -304,12 +312,14 @@ class MainActivity : ComponentActivity() {
         if (permissions.isNotEmpty()) {
             requestPermissionLauncher.launch(permissions.toTypedArray())
         } else {
+            startActivity(Intent(this, MainActivity::class.java))
             getDeviceID()
             checkNfcAvailability()
             checkLocationAvailability()
         }
     }
 
+    @SuppressLint("HardwareIds")
     private fun getDeviceID() {
         val androidId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         deviceId = androidId
